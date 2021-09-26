@@ -1,7 +1,12 @@
 package com.example.videostreaming;
 
+import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 
+import com.example.videostreaming.listener.AccelerometerListener;
+import com.example.videostreaming.listener.GyroscopeListener;
 import com.google.android.material.snackbar.Snackbar;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,9 +28,45 @@ public class MainActivity extends AppCompatActivity {
     private AppBarConfiguration appBarConfiguration;
     private ActivityMainBinding binding;
 
+    private SensorManager sensorManager;
+
+    private Sensor gyroscope;
+
+    private Sensor accelerometer;
+
+    private AccelerometerListener accelerometerListener;
+
+    private GyroscopeListener gyroscopeListener;
+
+    public boolean isHasStartedWriting() {
+        return hasStartedWriting;
+    }
+
+    public void setHasStartedWriting(boolean hasStartedWriting) {
+        this.hasStartedWriting = hasStartedWriting;
+    }
+
+    private boolean hasStartedWriting=false;
+
+    public static final String FILE_NAME="sensor_data.csv";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        sensorManager=(SensorManager)getSystemService(Context.SENSOR_SERVICE);
+
+        accelerometer=sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+        gyroscope=sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+
+        accelerometerListener=new AccelerometerListener(this);
+
+        gyroscopeListener=new GyroscopeListener(this);
+
+        sensorManager.registerListener(accelerometerListener,accelerometer,SensorManager.SENSOR_DELAY_NORMAL);
+
+        sensorManager.registerListener(gyroscopeListener,gyroscope,SensorManager.SENSOR_DELAY_NORMAL);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -36,13 +77,19 @@ public class MainActivity extends AppCompatActivity {
         appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
 
-        binding.fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+
+    }
+
+    public void startWriting(View view)
+    {
+        System.out.println("Start button");
+        hasStartedWriting=true;
+    }
+
+    public void stopWriting(View view)
+    {
+        System.out.println("Stop button");
+         hasStartedWriting=false;
     }
 
     @Override
