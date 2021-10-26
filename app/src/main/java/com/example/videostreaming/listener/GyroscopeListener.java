@@ -29,7 +29,7 @@ public class GyroscopeListener implements SensorEventListener {
         if(mainActivity.isHasStartedWriting())
         {
             String baseDir = android.os.Environment.getExternalStorageDirectory().getAbsolutePath();
-            String fileName = mainActivity.FILE_NAME;
+            String fileName = mainActivity.GYRO_SENSOR_FILE_NAME;
             String filePath = baseDir + File.separator + fileName;
             File f = new File(filePath);
             CSVWriter writer;

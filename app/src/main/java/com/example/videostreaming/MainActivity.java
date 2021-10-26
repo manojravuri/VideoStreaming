@@ -1,18 +1,26 @@
 package com.example.videostreaming;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 
 import com.example.videostreaming.listener.AccelerometerListener;
 import com.example.videostreaming.listener.GyroscopeListener;
+import com.example.videostreaming.listener.LightSensorListener;
 import com.google.android.material.snackbar.Snackbar;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.view.View;
 
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -22,6 +30,7 @@ import com.example.videostreaming.databinding.ActivityMainBinding;
 
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -34,9 +43,13 @@ public class MainActivity extends AppCompatActivity {
 
     private Sensor accelerometer;
 
+    private Sensor lightSensor;
+
     private AccelerometerListener accelerometerListener;
 
     private GyroscopeListener gyroscopeListener;
+
+    private LightSensorListener lightSensorListener;
 
     public boolean isHasStartedWriting() {
         return hasStartedWriting;
@@ -48,11 +61,25 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean hasStartedWriting=false;
 
-    public static final String FILE_NAME="sensor_data.csv";
+    public static final String LIGHT_SENSOR_FILE_NAME="light_sensor_data.csv";
+
+    public static final String GYRO_SENSOR_FILE_NAME="gyro_sensor_data.csv";
+
+    public static final String ACCELEROMETER_SENSOR_FILE_NAME="accelerometer_sensor_data.csv";
+
+    private int STORAGE_PERMISSION_CODE = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (ContextCompat.checkSelfPermission(MainActivity.this,
+                Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            /////Toast.makeText(MainActivity.this, "You have already granted this permission!",
+              //      Toast.LENGTH_SHORT).show();
+        } else {
+            requestStoragePermission();
+        }
 
         sensorManager=(SensorManager)getSystemService(Context.SENSOR_SERVICE);
 
@@ -60,9 +87,13 @@ public class MainActivity extends AppCompatActivity {
 
         gyroscope=sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
+        lightSensor=sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+
         accelerometerListener=new AccelerometerListener(this);
 
         gyroscopeListener=new GyroscopeListener(this);
+
+        lightSensorListener=new LightSensorListener(this);
 
         sensorManager.registerListener(accelerometerListener,accelerometer,SensorManager.SENSOR_DELAY_NORMAL);
 
@@ -79,6 +110,48 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
+
+
+    private void requestStoragePermission() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                Manifest.permission.READ_EXTERNAL_STORAGE)) {
+
+            new AlertDialog.Builder(this)
+                    .setTitle("Permission needed")
+                    .setMessage("This permission is needed because of this and that")
+                    .setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            ActivityCompat.requestPermissions(MainActivity.this,
+                                    new String[] {Manifest.permission.READ_EXTERNAL_STORAGE}, STORAGE_PERMISSION_CODE);
+                        }
+                    })
+                    .setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .create().show();
+
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[] {Manifest.permission.READ_EXTERNAL_STORAGE}, STORAGE_PERMISSION_CODE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == STORAGE_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Permission GRANTED", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Permission DENIED", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
 
     public void startWriting(View view)
     {

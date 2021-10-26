@@ -3,7 +3,6 @@ package com.example.videostreaming.listener;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
-import android.util.ArrayMap;
 import android.util.Log;
 
 import com.example.videostreaming.MainActivity;
@@ -12,49 +11,48 @@ import com.opencsv.CSVWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Arrays;
 
-public class AccelerometerListener implements SensorEventListener {
+public class LightSensorListener implements SensorEventListener {
 
-    String TAG="accelerometerLog";
+    String TAG="lightsensorLog";
 
     MainActivity mainActivity;
 
-    public AccelerometerListener(MainActivity mainActivity)
+    public LightSensorListener(MainActivity mainActivity)
     {
         this.mainActivity=mainActivity;
     }
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent)  {
-        Log.d(TAG, "acceleration change: X:"+sensorEvent.values[0]+"  Y:"+sensorEvent.values[1]+"Z:  "+sensorEvent.values[2]);
+        Log.d(TAG, "light sensor change: X:"+sensorEvent.values[0]+"  Y:"+sensorEvent.values[1]+"Z:  "+sensorEvent.values[2]);
         if(mainActivity.isHasStartedWriting())
         {
             String baseDir = android.os.Environment.getExternalStorageDirectory().getAbsolutePath();
-            String fileName = mainActivity.ACCELEROMETER_SENSOR_FILE_NAME;
+            String fileName = mainActivity.LIGHT_SENSOR_FILE_NAME;
             String filePath = baseDir + File.separator + fileName;
             File f = new File(filePath);
             CSVWriter writer;
             FileWriter mFileWriter;
             try{
-            // File exist
-            if(f.exists()&&!f.isDirectory())
-            {
+                // File exist
+                if(f.exists()&&!f.isDirectory())
+                {
                     mFileWriter = new FileWriter(filePath, true);
                     writer = new CSVWriter(mFileWriter);
-            }
-            else
-            {
-                writer = new CSVWriter(new FileWriter(filePath));
-            }
+                }
+                else
+                {
+                    writer = new CSVWriter(new FileWriter(filePath));
+                }
 
-            float[] sensorValues = (sensorEvent.values);
-            String[] data=new String[sensorValues.length];
-            for(int i=0;i<sensorValues.length;i++)
-            {
-                data[i]=String.valueOf(sensorValues[i]);
-            }
-            writer.writeNext(data);
+                float[] sensorValues = (sensorEvent.values);
+                String[] data=new String[sensorValues.length];
+                for(int i=0;i<sensorValues.length;i++)
+                {
+                    data[i]=String.valueOf(sensorValues[i]);
+                }
+                writer.writeNext(data);
 
 
                 writer.close();
